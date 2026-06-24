@@ -105,30 +105,44 @@ function requireAuth(req, res, next) {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
+
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password required' });
+      return res.status(400).json({ error: 'Missing credentials' });
     }
+
     const admin = await Admin.findOne({ username });
-    if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (!admin) {
+      return res.status(401).json({ error: 'Invalid username' });
+    }
+
+    if (!admin.passwordHash) {
+      return res.status(500).json({ error: 'Admin not initialized properly' });
+    }
 
     const match = await bcrypt.compare(password, admin.passwordHash);
-    if (!match) return res.status(401).json({ error: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: admin._id, username: admin.username }, JWT_SECRET, {
-      expiresIn: '8h'
-    });
+    if (!match) {
+      return res.status(401).json({ error: 'Wrong password' });
+    }
+
+    const token = jwt.sign(
+      { id: admin._id, username: admin.username },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    );
 
     res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 8 * 60 * 60 * 1000,
-      sameSite: 'lax'
+      sameSite: 'none',
+      secure: true
     });
 
-    res.json({ message: 'Login successful', username: admin.username });
+    return res.json({ message: 'Login successful' });
+
   } catch (err) {
-    res.status(500).json({ error: 'Server error during login' });
-  }
-});
+    console.log("LOGIN ERROR:", err);
+    return
 
 // Logout
 app.post('/api/auth/logout', (req, res) => {
