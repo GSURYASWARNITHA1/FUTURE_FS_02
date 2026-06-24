@@ -87,6 +87,20 @@ mongoose.connection.on('connected', () => {
   console.log("MongoDB connected → running seedAdmin");
   seedAdmin();
 });
+mongoose.connection.once('open', async () => {
+  const count = await Admin.countDocuments();
+
+  if (count === 0) {
+    const hash = await bcrypt.hash('india', 10);
+
+    await Admin.create({
+      username: 'swarnitha',
+      passwordHash: hash
+    });
+
+    console.log("🔥 Forced admin created");
+  }
+});
 // ---------- Auth Middleware ----------
 function requireAuth(req, res, next) {
   const token = req.cookies.token;
@@ -108,16 +122,24 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Missing credentials' });
+    }
+
     const admin = await Admin.findOne({ username });
 
     if (!admin) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    if (!admin.passwordHash) {
+      return res.status(500).json({ error: 'Admin not set up in DB' });
     }
 
     const match = await bcrypt.compare(password, admin.passwordHash);
 
     if (!match) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
 
     const token = jwt.sign(
@@ -135,7 +157,7 @@ app.post('/api/auth/login', async (req, res) => {
 
   } catch (err) {
     console.log("LOGIN ERROR:", err);
-    return res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Server crash during login' });
   }
 });
 // Logout
