@@ -155,11 +155,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     return res.json({ message: 'Login successful' });
 
-  } catch (err) {
-    console.log("LOGIN ERROR:", err);
-    return res.status(500).json({ error: 'Server crash during login' });
-  }
-});
+ } catch (err) {
+  console.log("🔥 LOGIN REAL ERROR:", err);
+  return res.status(500).json({ error: err.message });
+}
 // Logout
 app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('token');
