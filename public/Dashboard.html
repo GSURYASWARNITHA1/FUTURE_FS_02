@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini CRM — Dashboard</title>
+<style>
+  :root {
+    --peacock: #005f73;
+    --peacock-dark: #013a4a;
+    --peacock-light: #0a9396;
+    --parrot: #4caf3d;
+    --parrot-light: #7ed957;
+    --yellow: #ffd60a;
+    --yellow-light: #fff3b0;
+    --white: #ffffff;
+    --text-dark: #0b2027;
+    --gray: #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background: var(--yellow-light);
+    color: var(--text-dark);
+    min-height: 100vh;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    background: var(--peacock);
+    color: var(--white);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+  .topbar h1 { font-size: 1.3rem; }
+  .topbar h1 span { color: var(--yellow); }
+  .topbar .right { display: flex; align-items: center; gap: 16px; }
+  .topbar .user { font-weight: 600; font-size: 0.9rem; }
+  .topbar button {
+    background: var(--parrot);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  .topbar button:hover { background: #3d9530; }
+
+  .container { padding: 26px; max-width: 1300px; margin: 0 auto; }
+
+  /* ---------- Stat cards ---------- */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 26px;
+  }
+  .stat-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 18px 20px;
+    border-left: 6px solid var(--peacock);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+  .stat-card:nth-child(2) { border-left-color: var(--parrot); }
+  .stat-card:nth-child(3) { border-left-color: var(--yellow); }
+  .stat-card:nth-child(4) { border-left-color: var(--peacock-light); }
+  .stat-card .label { font-size: 0.8rem; color: var(--gray); font-weight: 600; }
+  .stat-card .value { font-size: 1.8rem; font-weight: 800; color: var(--peacock-dark); margin-top: 4px; }
+
+  /* ---------- Charts ---------- */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .chart-card {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  }
+  .chart-card h3 {
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    color: var(--peacock-dark);
+  }
+  .chart-wrap { position: relative; height: 220px; }
+
+  /* ---------- Controls ---------- */
+  .controls {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .controls input, .controls select {
+    padding: 10px 14px;
+    border: 2px solid var(--peacock);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    outline: none;
+  }
+  .controls input { flex: 1; min-width: 200px; }
+
+  /* ---------- Table ---------- */
+  .table-card {
+    background: var(--white);
+    border-radius: 14px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead { background: var(--peacock); color: var(--white); }
+  th, td { padding: 12px 14px; text-align: left; font-size: 0.88rem; }
+  tbody tr { border-bottom: 1px solid #eee; }
+  tbody tr:hover { background: #f9fdf7; }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--white);
+    display: inline-block;
+  }
+  .badge.new { background: var(--peacock-light); }
+  .badge.contacted { background: var(--yellow); color: var(--text-dark); }
+  .badge.converted { background: var(--parrot); }
+
+  select.status-select {
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    font-size: 0.8rem;
+  }
+
+  .btn-small {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    color: var(--white);
+    margin-right: 4px;
+  }
+  .btn-note { background: var(--peacock-light); }
+  .btn-note:hover { background: var(--peacock); }
+  .btn-delete { background: #d9534f; }
+  .btn-delete:hover { background: #b8312b; }
+
+  .empty-row td { text-align: center; padding: 30px; color: var(--gray); }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 24px;
+    width: 90%;
+    max-width: 480px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal h2 { color: var(--peacock-dark); margin-bottom: 14px; font-size: 1.15rem; }
+  .modal .lead-info { font-size: 0.85rem; color: var(--gray); margin-bottom: 14px; line-height: 1.5; }
+  .note-item {
+    background: var(--yellow-light);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 8px;
+    font-size: 0.85rem;
+  }
+  .note-item .note-date { font-size: 0.72rem; color: var(--gray); margin-top: 2px; }
+  .modal textarea {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid var(--peacock);
+    border-radius: 8px;
+    min-height: 70px;
+    margin-top: 10px;
+    font-size: 0.88rem;
+    outline: none;
+  }
+  .modal .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .modal .modal-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .modal .btn-save { background: var(--parrot); color: var(--white); }
+  .modal .btn-cancel { background: #eee; color: var(--text-dark); }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>🦜 Mini <span>CRM</span> Dashboard</h1>
+  <div class="right">
+    <span class="user" id="userLabel"></span>
+    <button id="logoutBtn">Logout</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Total Leads</div>
+      <div class="value" id="statTotal">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">New</div>
+      <div class="value" id="statNew">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Contacted</div>
+      <div class="value" id="statContacted">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Converted</div>
+      <div class="value" id="statConverted">0</div>
+    </div>
+  </div>
+
+  
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="🔍 Search by name or email..." />
+    <select id="statusFilter">
+      <option value="all">All Statuses</option>
+      <option value="new">New</option>
+      <option value="contacted">Contacted</option>
+      <option value="converted">Converted</option>
+    </select>
+  </div>
+
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Submitted</th>
+          <th>Notes</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="leadsTableBody">
+        <tr class="empty-row"><td colspan="8">Loading leads...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<!-- Notes Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h2 id="modalTitle">Lead Notes</h2>
+    <div class="lead-info" id="modalLeadInfo"></div>
+    <div id="notesList"></div>
+    <textarea id="newNoteText" placeholder="Add a follow-up note..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-save" id="saveNoteBtn">Add Note</button>
+      <button class="btn-cancel" id="closeModalBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let allLeads = [];
+  let currentLeadId = null;
+  const colors = {
+    peacock: '#005f73',
+    peacockLight: '#0a9396',
+    parrot: '#4caf3d',
+    yellow: '#ffd60a'
+  };
+
+  // ---------- Auth check ----------
+  async function checkAuth() {
+    try {
+      const res = await fetch('/api/auth/me');
+      if (!res.ok) { window.location.href = '/login'; return; }
+      const data = await res.json();
+      document.getElementById('userLabel').textContent = '👤 ' + data.username;
+      loadStats();
+      loadLeads();
+    } catch (err) {
+      window.location.href = '/login';
+    }
+  }
+
+  // ---------- Logout ----------
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  });
+
+  // ---------- Load stats + render charts ----------
+  async function loadStats() {
+    const res = await fetch('/api/leads/stats');
+    if (!res.ok) return;
+    const data = await res.json();
+
+    document.getElementById('statTotal').textContent = data.total;
+    const statusMap = { new: 0, contacted: 0, converted: 0 };
+    data.statusCounts.forEach(s => { statusMap[s._id] = s.count; });
+    document.getElementById('statNew').textContent = statusMap.new;
+    document.getElementById('statContacted').textContent = statusMap.contacted;
+    document.getElementById('statConverted').textContent = statusMap.converted;
+
+    
+  }
+
+     
+  
+
+  // ---------- Load leads table ----------
+  async function loadLeads() {
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (status) params.append('status', status);
+
+    const res = await fetch('/api/leads?' + params.toString());
+    if (!res.ok) return;
+    allLeads = await res.json();
+    renderTable();
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('leadsTableBody');
+    if (allLeads.length === 0) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No leads found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = allLeads.map(lead => `
+      <tr>
+        <td>${escapeHtml(lead.name)}</td>
+        <td>${escapeHtml(lead.email)}</td>
+        <td>${escapeHtml(lead.phone || '-')}</td>
+        <td>${escapeHtml(lead.source)}</td>
+        <td>
+          <select class="status-select" data-id="${lead._id}">
+            <option value="new" ${lead.status === 'new' ? 'selected' : ''}>New</option>
+            <option value="contacted" ${lead.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+            <option value="converted" ${lead.status === 'converted' ? 'selected' : ''}>Converted</option>
+          </select>
+        </td>
+        <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
+        <td>${lead.notes.length} note(s)</td>
+        <td>
+          <button class="btn-small btn-note" data-id="${lead._id}">Notes</button>
+          <button class="btn-small btn-delete" data-id="${lead._id}">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+
+    // Attach event listeners
+    document.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async (e) => {
+        const id = e.target.dataset.id;
+        await fetch(`/api/leads/${id}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: e.target.value })
+        });
+        loadStats();
+        loadLeads();
+      });
+    });
+
+    document.querySelectorAll('.btn-note').forEach(btn => {
+      btn.addEventListener('click', () => openNotesModal(btn.dataset.id));
+    });
+
+    document.querySelectorAll('.btn-delete').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Delete this lead?')) return;
+        await fetch(`/api/leads/${btn.dataset.id}`, { method: 'DELETE' });
+        loadStats();
+        loadLeads();
+      });
+    });
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+  }
+
+  // ---------- Notes modal ----------
+  function openNotesModal(id) {
+    const lead = allLeads.find(l => l._id === id);
+    if (!lead) return;
+    currentLeadId = id;
+    document.getElementById('modalTitle').textContent = `Notes — ${lead.name}`;
+    document.getElementById('modalLeadInfo').textContent = `${lead.email} | ${lead.phone || 'No phone'} | Status: ${lead.status}`;
+    const notesList = document.getElementById('notesList');
+    notesList.innerHTML = lead.notes.length
+      ? lead.notes.map(n => `
+          <div class="note-item">
+            ${escapeHtml(n.text)}
+            <div class="note-date">${new Date(n.createdAt).toLocaleString()}</div>
+          </div>
+        `).join('')
+      : '<p style="color:#888; font-size:0.85rem;">No notes yet.</p>';
+    document.getElementById('newNoteText').value = '';
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+
+  document.getElementById('closeModalBtn').addEventListener('click', () => {
+    document.getElementById('modalOverlay').classList.remove('active');
+  });
+
+  document.getElementById('saveNoteBtn').addEventListener('click', async () => {
+    const text = document.getElementById('newNoteText').value.trim();
+    if (!text || !currentLeadId) return;
+    const res = await fetch(`/api/leads/${currentLeadId}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text })
+    });
+    if (res.ok) {
+      await loadLeads();
+      openNotesModal(currentLeadId);
+    }
+  });
+
+  // ---------- Filters ----------
+  document.getElementById('searchInput').addEventListener('input', debounce(loadLeads, 350));
+  document.getElementById('statusFilter').addEventListener('change', loadLeads);
+
+  function debounce(fn, delay) {
+    let timer;
+    return (...args) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => fn(...args), delay);
+    };
+  }
+
+  // ---------- Init ----------
+  checkAuth();
+ 
+</script>
+
+</body>
+</html>
