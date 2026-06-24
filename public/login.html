@@ -171,6 +171,7 @@
       const res = await fetch('fetch('https://future-fs-02-tm59.onrender.com/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           username: form.username.value.trim(),
           password: form.password.value
