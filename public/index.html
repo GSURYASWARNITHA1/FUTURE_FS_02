@@ -1,270 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GSS — Mini CRM</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mini CRM — Submit a Request</title>
+<style>
+  :root {
+    --peacock: #005f73;
+    --peacock-dark: #013a4a;
+    --parrot: #4caf3d;
+    --parrot-light: #7ed957;
+    --yellow: #ffd60a;
+    --yellow-light: #fff3b0;
+    --white: #ffffff;
+    --text-dark: #0b2027;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--peacock) 0%, var(--peacock-dark) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .card {
+    background: var(--yellow-light);
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+    max-width: 520px;
+    width: 100%;
+    overflow: hidden;
+    border: 4px solid var(--yellow);
+  }
+
+  .header {
+    background: var(--parrot);
+    background: linear-gradient(120deg, var(--parrot) 0%, var(--parrot-light) 100%);
+    padding: 28px 30px;
+    text-align: center;
+    border-bottom: 5px solid var(--yellow);
+  }
+
+  .header h1 {
+    color: var(--white);
+    font-size: 1.6rem;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .header p {
+    color: var(--peacock-dark);
+    margin-top: 6px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  form {
+    padding: 28px 30px 32px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--peacock-dark);
+    margin-bottom: 6px;
+    margin-top: 16px;
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  input, select, textarea {
+    width: 100%;
+    padding: 11px 14px;
+    border: 2px solid var(--peacock);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: var(--white);
+    outline: none;
+    transition: all 0.2s ease;
+  }
+
+  input:focus, select:focus, textarea:focus {
+    border-color: var(--parrot);
+    box-shadow: 0 0 0 3px rgba(76,175,61,0.25);
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  button {
+    width: 100%;
+    margin-top: 22px;
+    padding: 13px;
+    background: var(--peacock);
+    color: var(--white);
+    font-size: 1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+    letter-spacing: 0.4px;
+  }
+
+  button:hover { background: var(--peacock-dark); transform: translateY(-1px); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .msg {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    display: none;
+  }
+
+  .msg.success {
+    background: #e3f9e0;
+    color: #1d6b1d;
+    border: 2px solid var(--parrot);
+    display: block;
+  }
+
+  .msg.error {
+    background: #fde2e2;
+    color: #9c1f1f;
+    border: 2px solid #c94a4a;
+    display: block;
+  }
+
+  .footer-link {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 0.82rem;
+  }
+
+  .footer-link a {
+    color: var(--peacock);
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .footer-link a:hover { text-decoration: underline; }
+</style>
 </head>
 <body>
 
-<div class="topbar">
-  <div class="brand"><span class="seal">G</span> GSS</div>
-  <div class="nav-links" id="navLinks">
-    <button class="navbtn" onclick="showView('request')">Submit a Request</button>
-    <button class="navbtn" onclick="showView('login')" id="navLogin">Admin Login</button>
-    <button class="btn-ghost-logout" id="logoutBtn" style="display:none;">Log Out</button>
+<div class="card">
+  <div class="header">
+    <h1>🌟 Get in Touch</h1>
+    <p>Submit your request and our team will reach out to you</p>
   </div>
-</div>
 
-<main>
+  <form id="leadForm">
+    <label for="name">Full Name *</label>
+    <input type="text" id="name" name="name" placeholder="Your name" required />
 
-  <section class="view active" id="view-request">
-    <div class="hero">
-      <div class="eyebrow">Client Lead Management System</div>
-      <h1>Every inquiry, <em>tracked</em>.<br>Nothing falls through.</h1>
-      <p class="lede">Tell us about your project below. Your request is saved straight to our database — our team picks it up, tracks status, and follows up until it's closed.</p>
-    </div>
+    <label for="email">Email Address *</label>
+    <input type="email" id="email" name="email" placeholder="you@example.com" required />
 
-    <div class="form-wrap">
-      <div class="form-card">
-        <h2>Tell us about your project</h2>
-        <p style="color:var(--gray);margin-top:-6px;margin-bottom:24px;font-size:14px;">Fields marked with an asterisk are required.</p>
-        <form id="leadForm">
-          <div class="field"><label>Full Name *</label><input type="text" id="f-name" required placeholder="e.g. Priya Sharma"></div>
-          <div class="field"><label>Email *</label><input type="email" id="f-email" required placeholder="you@company.com"></div>
-          <div class="field"><label>Phone</label><input type="tel" id="f-phone" placeholder="+91 9XXXX XXXXX"></div>
-          <div class="field"><label>How did you hear about us?</label>
-            <select id="f-source"><option>Website Form</option><option>Referral</option><option>Social Media</option><option>Search Engine</option><option>Other</option></select>
-          </div>
-          <div class="field"><label>What do you need help with? *</label><textarea id="f-message" required placeholder="A short note about your project or request..."></textarea></div>
-          <button type="submit" class="btn btn-gold btn-block" id="submitBtn">Submit Request</button>
-        </form>
-      </div>
-    </div>
-  </section>
+    <label for="phone">Phone Number</label>
+    <input type="text" id="phone" name="phone" placeholder="Optional" />
 
-  <section class="view" id="view-login">
-    <div class="login-shell">
-      <div class="login-card">
-        <div class="seal">G</div>
-        <h2>Admin Login</h2>
-        <p class="sub">Sign in to manage the lead ledger</p>
-        <div class="error-msg" id="errBox"></div>
-        <form id="loginForm">
-          <div class="field"><label>Username</label><input type="text" id="l-user" placeholder="Username" required></div>
-          <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" required></div>
-          <button type="submit" class="btn btn-gold btn-block" id="loginBtn">Sign In</button>
-        </form>
-      </div>
-    </div>
-  </section>
+    <label for="source">How did you hear about us?</label>
+    <select id="source" name="source">
+      <option value="Website">Website</option>
+      <option value="Referral">Referral</option>
+      <option value="Social Media">Social Media</option>
+      <option value="Ad Campaign">Ad Campaign</option>
+      <option value="Other">Other</option>
+    </select>
 
-  <section class="view" id="view-dashboard">
-    <div class="section-title"><h2>Lead Dashboard</h2><div class="rule"></div></div>
-    <div class="stats-row">
-      <div class="stat"><div class="num" id="s-total">0</div><div class="label">Total Leads</div></div>
-      <div class="stat"><div class="num" id="s-new">0</div><div class="label">New</div></div>
-      <div class="stat"><div class="num" id="s-contacted">0</div><div class="label">Contacted</div></div>
-      <div class="stat"><div class="num" id="s-converted">0</div><div class="label">Converted</div></div>
-    </div>
-    <div class="toolbar">
-      <div class="filters">
-        <input type="text" id="searchInput" placeholder="Search by name or email...">
-        <select id="statusFilter">
-          <option value="all">All statuses</option><option value="new">New</option><option value="contacted">Contacted</option><option value="converted">Converted</option>
-        </select>
-      </div>
-      <span style="font-size:12px;color:var(--gray);">Live from MongoDB</span>
-    </div>
-    <div class="card" style="padding:0;overflow:hidden;">
-      <table>
-        <thead><tr><th>Lead</th><th>Source</th><th>Status</th><th>Notes</th><th>Received</th><th>Actions</th></tr></thead>
-        <tbody id="leadsBody"></tbody>
-      </table>
-      <div class="empty-state" id="emptyState" style="display:none;">No leads match your filters.</div>
-    </div>
-  </section>
+    <label for="message">Your Message</label>
+    <textarea id="message" name="message" placeholder="Tell us what you need..."></textarea>
 
-</main>
+    <button type="submit" id="submitBtn">Submit Request</button>
 
-<footer>GSS — Mini CRM · Node/Express + MongoDB</footer>
+    <div class="msg" id="msgBox"></div>
+  </form>
 
-<div class="modal-overlay" id="notesModal">
-  <div class="modal">
-    <h3>Lead Notes — <span id="modalLeadName"></span></h3>
-    <div id="existingNotes" style="max-height:140px;overflow-y:auto;margin-bottom:12px;font-size:13px;color:var(--gray);"></div>
-    <textarea id="newNoteText" placeholder="Add a follow-up note..."></textarea>
-    <div class="modal-actions">
-      <button class="icon-btn" id="closeModalBtn">Cancel</button>
-      <button class="btn btn-gold" id="saveNoteBtn">Save Note</button>
-    </div>
+  <div class="footer-link">
+    Admin? <a href="/login">Login here</a>
   </div>
 </div>
 
 <script>
-const API_BASE = '/api';
-const TOKEN_KEY = 'gss_token';
-const Auth = {
-  async login(username, password){
-    const res = await fetch(`${API_BASE}/auth/login`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({username,password})});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error || 'Login failed.');
-    localStorage.setItem(TOKEN_KEY, data.token);
-    return data;
-  },
-  isLoggedIn(){ return !!localStorage.getItem(TOKEN_KEY); },
-  logout(){ localStorage.removeItem(TOKEN_KEY); },
-  token(){ return localStorage.getItem(TOKEN_KEY); }
-};
-function authHeaders(){ return {'Content-Type':'application/json','Authorization':`Bearer ${Auth.token()}`}; }
-async function handleRes(res){
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok){
-    if(res.status===401){ Auth.logout(); showView('login'); }
-    throw new Error(data.error || 'Something went wrong.');
-  }
-  return data;
-}
-const LeadAPI = {
-  async submit(lead){ const res = await fetch(`${API_BASE}/leads`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lead)}); return handleRes(res); },
-  async getAll(){ const res = await fetch(`${API_BASE}/leads`,{headers:authHeaders()}); return handleRes(res); },
-  async updateStatus(id,status){ const res = await fetch(`${API_BASE}/leads/${id}/status`,{method:'PATCH',headers:authHeaders(),body:JSON.stringify({status})}); return handleRes(res); },
-  async addNote(id,text){ const res = await fetch(`${API_BASE}/leads/${id}/notes`,{method:'POST',headers:authHeaders(),body:JSON.stringify({text})}); return handleRes(res); },
-  async remove(id){ const res = await fetch(`${API_BASE}/leads/${id}`,{method:'DELETE',headers:authHeaders()}); return handleRes(res); }
-};
-function showToast(message, title='Success'){
-  let toast = document.getElementById('gss-toast');
-  if(!toast){ toast=document.createElement('div'); toast.id='gss-toast'; toast.className='toast'; toast.innerHTML=`<span class="dot"></span><span><strong id="gss-toast-title"></strong><br><span id="gss-toast-msg"></span></span>`; document.body.appendChild(toast); }
-  document.getElementById('gss-toast-title').textContent = title;
-  document.getElementById('gss-toast-msg').textContent = message;
-  toast.classList.add('show'); clearTimeout(toast._timer); toast._timer=setTimeout(()=>toast.classList.remove('show'),3800);
-}
-function timeAgo(dateStr){ const diff=Date.now()-new Date(dateStr).getTime(); const h=Math.floor(diff/3600000); if(h<1) return Math.floor(diff/60000)+'m ago'; if(h<24) return h+'h ago'; return Math.floor(h/24)+'d ago'; }
-function escapeHtml(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  const form = document.getElementById('leadForm');
+  const msgBox = document.getElementById('msgBox');
+  const submitBtn = document.getElementById('submitBtn');
 
-function showView(name){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  if(name==='dashboard' && !Auth.isLoggedIn()){ name='login'; }
-  document.getElementById('view-'+name).classList.add('active');
-  document.getElementById('logoutBtn').style.display = Auth.isLoggedIn() ? 'inline-flex' : 'none';
-  document.getElementById('navLogin').style.display = Auth.isLoggedIn() ? 'none' : 'inline-flex';
-  if(name==='dashboard') loadLeads();
-}
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    msgBox.className = 'msg';
+    msgBox.textContent = '';
 
-document.getElementById('leadForm').addEventListener('submit', async function(e){
-  e.preventDefault();
-  const btn = document.getElementById('submitBtn');
-  const name = document.getElementById('f-name').value.trim();
-  const email = document.getElementById('f-email').value.trim();
-  const phone = document.getElementById('f-phone').value.trim();
-  const source = document.getElementById('f-source').value;
-  const message = document.getElementById('f-message').value.trim();
-  if(!name || !email || !message){ alert('Please fill in your name, email, and a short message before submitting.'); return; }
-  btn.disabled = true; btn.textContent = 'Submitting...';
-  try{
-    await LeadAPI.submit({name,email,phone,source,message});
-    alert('Thank you, ' + name + '! Your request has been received.');
-    showToast('Your request was saved to the database.', 'Request Received');
-    this.reset();
-  }catch(err){ alert('Something went wrong: ' + err.message); }
-  finally{ btn.disabled=false; btn.textContent='Submit Request'; }
-});
+    const payload = {
+      name: form.name.value.trim(),
+      email: form.email.value.trim(),
+      phone: form.phone.value.trim(),
+      source: form.source.value,
+      message: form.message.value.trim()
+    };
 
-document.getElementById('loginForm').addEventListener('submit', async function(e){
-  e.preventDefault();
-  const u = document.getElementById('l-user').value.trim();
-  const p = document.getElementById('l-pass').value;
-  const errBox = document.getElementById('errBox');
-  const btn = document.getElementById('loginBtn');
-  errBox.style.display='none'; btn.disabled=true; btn.textContent='Signing in...';
-  try{
-    await Auth.login(u,p);
-    showView('dashboard');
-  }catch(err){
-    errBox.textContent = err.message; errBox.style.display='block';
-    alert('Login failed: ' + err.message);
-  }finally{ btn.disabled=false; btn.textContent='Sign In'; }
-});
-document.getElementById('logoutBtn').addEventListener('click', ()=>{ Auth.logout(); showView('request'); });
+    try {
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
 
-let activeLeadId = null;
-let cachedLeads = [];
-async function loadLeads(){
-  try{ cachedLeads = await LeadAPI.getAll(); renderLeads(); }
-  catch(err){ showToast(err.message,'Error'); }
-}
-function renderLeads(){
-  const search = document.getElementById('searchInput').value.toLowerCase().trim();
-  const statusFilter = document.getElementById('statusFilter').value;
-  document.getElementById('s-total').textContent = cachedLeads.length;
-  document.getElementById('s-new').textContent = cachedLeads.filter(l=>l.status==='new').length;
-  document.getElementById('s-contacted').textContent = cachedLeads.filter(l=>l.status==='contacted').length;
-  document.getElementById('s-converted').textContent = cachedLeads.filter(l=>l.status==='converted').length;
-  let filtered = cachedLeads.filter(l=>{
-    const matchesSearch = !search || l.name.toLowerCase().includes(search) || l.email.toLowerCase().includes(search);
-    const matchesStatus = statusFilter==='all' || l.status===statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-  const body = document.getElementById('leadsBody');
-  const empty = document.getElementById('emptyState');
-  body.innerHTML='';
-  if(filtered.length===0){ empty.style.display='block'; return; }
-  empty.style.display='none';
-  filtered.forEach(l=>{
-    const lastNote = l.notes.length ? l.notes[l.notes.length-1].text : '<span style="opacity:.5;">No notes yet</span>';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${escapeHtml(l.name)}</strong><br><span class="lead-source">${escapeHtml(l.email)}${l.phone?' · '+escapeHtml(l.phone):''}</span></td>
-      <td class="lead-source">${escapeHtml(l.source)}</td>
-      <td><select class="status-select" data-id="${l._id}">
-        <option value="new" ${l.status==='new'?'selected':''}>New</option>
-        <option value="contacted" ${l.status==='contacted'?'selected':''}>Contacted</option>
-        <option value="converted" ${l.status==='converted'?'selected':''}>Converted</option>
-      </select></td>
-      <td class="notes-cell">${lastNote}</td>
-      <td class="lead-source">${timeAgo(l.createdAt)}</td>
-      <td><button class="icon-btn" data-note="${l._id}">+ Note</button> <button class="icon-btn danger" data-del="${l._id}">Delete</button></td>
-    `;
-    body.appendChild(tr);
-  });
-  body.querySelectorAll('.status-select').forEach(sel=>{
-    sel.addEventListener('change', async function(){
-      try{ await LeadAPI.updateStatus(this.dataset.id, this.value); showToast('Lead status updated to "'+this.value+'".','Status Updated'); await loadLeads(); }
-      catch(err){ showToast(err.message,'Error'); }
-    });
-  });
-  body.querySelectorAll('[data-note]').forEach(btn=>btn.addEventListener('click', function(){ openNotesModal(this.dataset.note); }));
-  body.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.addEventListener('click', async function(){
-      if(confirm('Remove this lead? This cannot be undone.')){
-        try{ await LeadAPI.remove(this.dataset.del); showToast('Lead removed.','Deleted'); await loadLeads(); }
-        catch(err){ showToast(err.message,'Error'); }
+      if (res.ok) {
+        msgBox.className = 'msg success';
+        msgBox.textContent = '✅ Thank you! Your request has been submitted.';
+        form.reset();
+      } else {
+        msgBox.className = 'msg error';
+        msgBox.textContent = '❌ ' + (data.error || 'Something went wrong.');
       }
-    });
+    } catch (err) {
+      msgBox.className = 'msg error';
+      msgBox.textContent = '❌ Network error. Please try again.';
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit Request';
+    }
   });
-}
-function openNotesModal(id){
-  activeLeadId = id;
-  const lead = cachedLeads.find(l=>l._id===id);
-  document.getElementById('modalLeadName').textContent = lead.name;
-  document.getElementById('existingNotes').innerHTML = lead.notes.length
-    ? lead.notes.map(n=>`<div style="padding:6px 0;border-bottom:1px dotted var(--border);">${escapeHtml(n.text)} <em style="opacity:.6;">— ${timeAgo(n.at)}</em></div>`).join('')
-    : '<em style="opacity:.6;">No notes yet.</em>';
-  document.getElementById('newNoteText').value = '';
-  document.getElementById('notesModal').classList.add('show');
-}
-document.getElementById('closeModalBtn').addEventListener('click', ()=>document.getElementById('notesModal').classList.remove('show'));
-document.getElementById('saveNoteBtn').addEventListener('click', async ()=>{
-  const text = document.getElementById('newNoteText').value.trim();
-  if(!text){ alert('Please write a note before saving.'); return; }
-  try{ await LeadAPI.addNote(activeLeadId, text); document.getElementById('notesModal').classList.remove('show'); showToast('Note saved.','Note Added'); await loadLeads(); }
-  catch(err){ showToast(err.message,'Error'); }
-});
-document.getElementById('searchInput').addEventListener('input', renderLeads);
-document.getElementById('statusFilter').addEventListener('change', renderLeads);
-
-showView(Auth.isLoggedIn() ? 'dashboard' : 'request');
 </script>
+
 </body>
 </html>
