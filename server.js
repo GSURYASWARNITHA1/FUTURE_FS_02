@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- MongoDB Connection ----------
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/mini_crm')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.error('❌ MongoDB connection error:', err.message));
 
@@ -272,5 +272,5 @@ app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'log
 app.get('/dashboard', (req, res) => res.sendFile(path.join(__dirname, 'public', 'dashboard.html')));
 
 app.listen(PORT, () => {
-  console.log(`🚀 Mini CRM server running at http://localhost:${PORT}`);
+  console.log(`🚀 Mini CRM server running on port ${PORT}`)
 });
