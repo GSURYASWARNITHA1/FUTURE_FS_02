@@ -122,24 +122,16 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Missing credentials' });
-    }
-
     const admin = await Admin.findOne({ username });
 
     if (!admin) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-
-    if (!admin.passwordHash) {
-      return res.status(500).json({ error: 'Admin not set up in DB' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const match = await bcrypt.compare(password, admin.passwordHash);
 
     if (!match) {
-      return res.status(401).json({ error: 'Invalid username or password' });
+      return res.status(401).json({ error: 'Invalid credentials' });
     }
 
     const token = jwt.sign(
@@ -155,10 +147,11 @@ app.post('/api/auth/login', async (req, res) => {
 
     return res.json({ message: 'Login successful' });
 
- } catch (err) {
-  console.log("🔥 LOGIN REAL ERROR:", err);
-  return res.status(500).json({ error: err.message });
-}
+  } catch (err) {
+    console.log("LOGIN ERROR:", err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 // Logout
 app.post('/api/auth/logout', (req, res) => {
   res.clearCookie('token');
