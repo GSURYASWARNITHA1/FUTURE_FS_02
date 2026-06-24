@@ -83,8 +83,10 @@ async function seedAdmin() {
     console.error('Admin seed error:', err.message);
   }
 }
-mongoose.connection.once('open', seedAdmin);
-
+mongoose.connection.on('connected', () => {
+  console.log("MongoDB connected → running seedAdmin");
+  seedAdmin();
+});
 // ---------- Auth Middleware ----------
 function requireAuth(req, res, next) {
   const token = req.cookies.token;
