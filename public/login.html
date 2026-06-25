@@ -168,10 +168,11 @@
     msgBox.style.display = 'none';
 
     try {
-      const res = await fetch('https://future-fs-02-tm59.onrender.com/api/auth/login', {
+      // FIXED: Switched endpoint to a relative URL format
+      const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',   // ✅ IMPORTANT FIX
+        credentials: 'include',
         body: JSON.stringify({
           username: form.username.value.trim(),
           password: form.password.value
@@ -181,7 +182,7 @@
       const data = await res.json();
 
       if (res.ok) {
-window.location.href = '/dashboard';
+        window.location.href = '/dashboard';
       } else {
         msgBox.style.display = 'block';
         msgBox.textContent = '❌ ' + (data.error || 'Login failed');
