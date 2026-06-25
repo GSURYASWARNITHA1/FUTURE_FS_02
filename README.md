@@ -41,7 +41,9 @@ crm/
 │ ├── index.html
 │ ├── login.html
 │ ├── dashboard.html
-│ ├── style.css
+├── models/
+│ ├── Lead.js
+│ ├── User.js
 │
 └── node_modules/ 
 
