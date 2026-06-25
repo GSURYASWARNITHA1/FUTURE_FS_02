@@ -300,13 +300,12 @@
   </div>
 </div>
 <script>
-  fetch(`${API}/api/leads`, {
-  credentials: 'include'
-});
+  const API = "https://future-fs-02-tm59.onrender.com";
 
   let allLeads = [];
   let currentLeadId = null;
 
+  // ---------- AUTH CHECK ----------
   async function checkAuth() {
     try {
       const res = await fetch(`${API}/api/auth/me`, {
@@ -324,10 +323,12 @@
       loadStats();
       loadLeads();
     } catch (err) {
+      console.error(err);
       window.location.href = '/login';
     }
   }
 
+  // ---------- LOGOUT ----------
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await fetch(`${API}/api/auth/logout`, {
       method: 'POST',
@@ -337,43 +338,58 @@
     window.location.href = '/login';
   });
 
+  // ---------- STATS ----------
   async function loadStats() {
-    const res = await fetch(`${API}/api/leads/stats`, {
-      credentials: 'include'
-    });
+    try {
+      const res = await fetch(`${API}/api/leads/stats`, {
+        credentials: 'include'
+      });
 
-    if (!res.ok) return;
+      if (!res.ok) return;
 
-    const data = await res.json();
+      const data = await res.json();
 
-    document.getElementById('statTotal').textContent = data.total;
+      document.getElementById('statTotal').textContent = data.total || 0;
 
-    const map = { new: 0, contacted: 0, converted: 0 };
-    data.statusCounts.forEach(s => map[s._id] = s.count);
+      const map = { new: 0, contacted: 0, converted: 0 };
+      (data.statusCounts || []).forEach(s => {
+        map[s._id] = s.count;
+      });
 
-    document.getElementById('statNew').textContent = map.new;
-    document.getElementById('statContacted').textContent = map.contacted;
-    document.getElementById('statConverted').textContent = map.converted;
+      document.getElementById('statNew').textContent = map.new;
+      document.getElementById('statContacted').textContent = map.contacted;
+      document.getElementById('statConverted').textContent = map.converted;
+
+    } catch (err) {
+      console.error("Stats error:", err);
+    }
   }
 
+  // ---------- LEADS ----------
   async function loadLeads() {
-    const search = document.getElementById('searchInput').value;
-    const status = document.getElementById('statusFilter').value;
+    try {
+      const search = document.getElementById('searchInput').value;
+      const status = document.getElementById('statusFilter').value;
 
-    const params = new URLSearchParams();
-    if (search) params.append('search', search);
-    if (status) params.append('status', status);
+      const params = new URLSearchParams();
+      if (search) params.append('search', search);
+      if (status) params.append('status', status);
 
-    const res = await fetch(`${API}/api/leads?` + params.toString(), {
-      credentials: 'include'
-    });
+      const res = await fetch(`${API}/api/leads?` + params.toString(), {
+        credentials: 'include'
+      });
 
-    if (!res.ok) return;
+      if (!res.ok) return;
 
-    allLeads = await res.json();
-    renderTable();
+      allLeads = await res.json();
+      renderTable();
+
+    } catch (err) {
+      console.error("Leads error:", err);
+    }
   }
 
+  // ---------- TABLE ----------
   function renderTable() {
     const tbody = document.getElementById('leadsTableBody');
 
@@ -384,13 +400,13 @@
 
     tbody.innerHTML = allLeads.map(lead => `
       <tr>
-        <td>${lead.name}</td>
-        <td>${lead.email}</td>
+        <td>${lead.name || ''}</td>
+        <td>${lead.email || ''}</td>
         <td>${lead.phone || '-'}</td>
-        <td>${lead.source}</td>
-        <td>${lead.status}</td>
+        <td>${lead.source || ''}</td>
+        <td>${lead.status || 'new'}</td>
         <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
-        <td>${lead.notes.length}</td>
+        <td>${lead.notes ? lead.notes.length : 0}</td>
         <td>
           <button onclick="deleteLead('${lead._id}')">Delete</button>
         </td>
@@ -398,16 +414,22 @@
     `).join('');
   }
 
+  // ---------- DELETE ----------
   async function deleteLead(id) {
-    await fetch(`${API}/api/leads/${id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    });
+    try {
+      await fetch(`${API}/api/leads/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
 
-    loadLeads();
-    loadStats();
+      loadLeads();
+      loadStats();
+    } catch (err) {
+      console.error(err);
+    }
   }
 
+  // ---------- INIT ----------
   checkAuth();
 </script>
 </body>
