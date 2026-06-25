@@ -1,7 +1,7 @@
 // ===============================
 // Mini CRM - server.js (CLEAN FIX)
 // ===============================
-
+const User = require('./models/User');
 require('dotenv').config();
 
 const express = require('express');
