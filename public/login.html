@@ -169,22 +169,24 @@
 
     try {
       const res = await fetch('https://future-fs-02-tm59.onrender.com/api/auth/login', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include',
-  body: JSON.stringify({
-    username: form.username.value.trim(),
-    password: form.password.value
-  })
-});
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',   // ✅ IMPORTANT FIX
+        body: JSON.stringify({
+          username: form.username.value.trim(),
+          password: form.password.value
+        })
+      });
+
       const data = await res.json();
 
       if (res.ok) {
-        window.location.href = '/dashboard';
+        wwindow.location.href = '/dashboard';
       } else {
         msgBox.style.display = 'block';
         msgBox.textContent = '❌ ' + (data.error || 'Login failed');
       }
+
     } catch (err) {
       msgBox.style.display = 'block';
       msgBox.textContent = '❌ Network error. Please try again.';
