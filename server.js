@@ -1,18 +1,22 @@
 // ===============================
-// Mini CRM - server.js (CLEAN FIX)
+// Mini CRM - server.js (FINAL FIXED)
 // ===============================
+
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
-const User = require('./models/User'); // ✅ correct
+const User = require('./models/User');
+const Lead = require('./models/Lead');
 
 const app = express();
 
-// middleware
+// -------------------- Middleware --------------------
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -22,39 +26,24 @@ app.use(cors({
   credentials: true
 }));
 
-// -------------------------------
-// Static frontend (IMPORTANT)
-// -------------------------------
+// -------------------- Static --------------------
 app.use(express.static(path.join(__dirname, 'public')));
 
-// -------------------------------
-// ENV
-// -------------------------------
+// -------------------- ENV --------------------
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_URI;
 
-// -------------------------------
-// MongoDB Connection
-// -------------------------------
+// -------------------- DB CONNECT --------------------
 mongoose.connect(MONGO_URI)
   .then(() => {
     console.log("✅ MongoDB connected");
     seedAdmin();
   })
   .catch(err => {
-    console.error("❌ MongoDB connection error:", err.message);
+    console.error("❌ MongoDB error:", err.message);
   });
 
-// -------------------------------
-// Basic Models (if already in file, keep yours)
-// -------------------------------
-const Lead = require('./models/Lead');
-
-// -------------------------------
-// Auth Middleware
-// -------------------------------
-const jwt = require('jsonwebtoken');
-
+// -------------------- AUTH MIDDLEWARE --------------------
 function requireAuth(req, res, next) {
   try {
     const token = req.cookies.token;
@@ -68,16 +57,15 @@ function requireAuth(req, res, next) {
   }
 }
 
-// -------------------------------
-// Seed Admin
-// -------------------------------
+// -------------------- SEED ADMIN --------------------
 async function seedAdmin() {
   try {
     const exists = await User.findOne({ username: 'admin' });
+
     if (!exists) {
       await User.create({
         username: 'admin',
-        password: 'admin123' // (you can hash later)
+        password: 'admin123'
       });
       console.log("👤 Admin created");
     }
@@ -94,36 +82,38 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // 1. check if body is coming correctly
     if (!username || !password) {
       return res.status(400).json({ error: "Username and password required" });
     }
 
-    // 2. find user in DB
     const user = await User.findOne({ username });
 
-    if (!user) {
+    if (!user || user.password !== password) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // 3. plain password check (your DB uses plain text)
-    if (password !== user.password) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
+    const token = jwt.sign(
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
 
-    return res.json({
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'lax'
+    });
+
+    res.json({
       message: "Login successful",
-      user: {
-        id: user._id,
-        username: user.username
-      }
+      user: { id: user._id, username: user.username }
     });
 
   } catch (err) {
-    console.error("LOGIN ERROR:", err);
-    return res.status(500).json({ error: "Server error" });
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
   }
 });
+
 app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json(req.user);
 });
@@ -137,17 +127,15 @@ app.post('/api/auth/logout', (req, res) => {
 // LEADS ROUTES
 // ===============================
 
-// Create lead
 app.post('/api/leads', async (req, res) => {
   try {
     const lead = await Lead.create(req.body);
     res.json(lead);
   } catch (err) {
-    res.status(500).json({ error: "Create lead failed" });
+    res.status(500).json({ error: "Create failed" });
   }
 });
 
-// Get leads
 app.get('/api/leads', requireAuth, async (req, res) => {
   try {
     const leads = await Lead.find().sort({ createdAt: -1 });
@@ -157,7 +145,6 @@ app.get('/api/leads', requireAuth, async (req, res) => {
   }
 });
 
-// Stats
 app.get('/api/leads/stats', requireAuth, async (req, res) => {
   try {
     const total = await Lead.countDocuments();
@@ -172,7 +159,6 @@ app.get('/api/leads/stats', requireAuth, async (req, res) => {
   }
 });
 
-// Update status
 app.patch('/api/leads/:id/status', requireAuth, async (req, res) => {
   try {
     const lead = await Lead.findByIdAndUpdate(
@@ -187,7 +173,6 @@ app.patch('/api/leads/:id/status', requireAuth, async (req, res) => {
   }
 });
 
-// Add note
 app.post('/api/leads/:id/notes', requireAuth, async (req, res) => {
   try {
     const lead = await Lead.findById(req.params.id);
@@ -202,7 +187,6 @@ app.post('/api/leads/:id/notes', requireAuth, async (req, res) => {
   }
 });
 
-// Delete lead
 app.delete('/api/leads/:id', requireAuth, async (req, res) => {
   try {
     await Lead.findByIdAndDelete(req.params.id);
