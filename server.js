@@ -199,24 +199,47 @@ app.delete('/api/leads/:id', requireAuth, async (req, res) => {
 });
 
 // ===============================
-// FRONTEND ROUTES (FIXED FOR DIRECT HTML ACCESS)
+// FRONTEND ROUTES (ULTIMATE FALLBACK FIX)
 // ===============================
 
+// Serve static files from both lowercase 'public' and uppercase 'Public' if it exists
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'Public')));
+
+// Home Route
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), err => {
+    if (err) res.sendFile(path.join(__dirname, 'Public', 'index.html'), err2 => {
+      if (err2) res.status(404).send("Not Found: index.html is missing from public folder");
+    });
+  });
 });
 
+// Login Route
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.sendFile(path.join(__dirname, 'public', 'login.html'), err => {
+    if (err) res.sendFile(path.join(__dirname, 'Public', 'login.html'), err2 => {
+      if (err2) res.status(404).send("Not Found: login.html is missing from public folder");
+    });
+  });
 });
 
+// Dashboard Route
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'), err => {
+    if (err) res.sendFile(path.join(__dirname, 'Public', 'dashboard.html'), err2 => {
+      if (err2) res.status(404).send("Not Found: dashboard.html is missing from public folder");
+    });
+  });
 });
 
-// FALLBACK ROUTE: Redirects any other broken path back to index.html
+// Fallback Route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), err => {
+    if (err) res.sendFile(path.join(__dirname, 'Public', 'index.html'), err2 => {
+      if (err2) res.status(404).send("Not Found: Fallback failed");
+    });
+  });
 });
 
 // ===============================
