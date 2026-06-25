@@ -3,6 +3,7 @@
 // ===================================================
 
 require('dotenv').config();
+app.use(express.static(path.join(__dirname, 'public')));
 
 const express = require('express');
 const mongoose = require('mongoose');
