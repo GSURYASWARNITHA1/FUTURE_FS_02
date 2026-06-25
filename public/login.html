@@ -181,7 +181,7 @@
       const data = await res.json();
 
       if (res.ok) {
-        window.location.href = '/dashboard.html';
+window.location.href = '/dashboard';
       } else {
         msgBox.style.display = 'block';
         msgBox.textContent = '❌ ' + (data.error || 'Login failed');
