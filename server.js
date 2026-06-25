@@ -21,10 +21,9 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'india';
 
 // ---------------- Middleware ----------------
 app.use(cors({
-  origin: true,
+  origin: "https://your-frontend-domain",
   credentials: true
 }));
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
