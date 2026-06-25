@@ -1,173 +1,235 @@
-// ===================================================
-// Mini CRM - CLEAN SERVER (FIXED VERSION)
-// ===================================================
+// ===============================
+// Mini CRM - server.js (CLEAN FIX)
+// ===============================
 
 require('dotenv').config();
-app.use(express.static(path.join(__dirname, 'public')));
 
 const express = require('express');
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
-const path = require('path');
 
+// -------------------------------
+// App init (MUST BE FIRST)
+// -------------------------------
 const app = express();
-const PORT = process.env.PORT || 5001;
-const JWT_SECRET = process.env.JWT_SECRET || 'change_this_secret';
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'swarnitha';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'india';
+// -------------------------------
+// Middleware
+// -------------------------------
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-// ---------------- Middleware ----------------
+// Allow frontend cookies + requests
 app.use(cors({
-  origin: "https://your-frontend-domain",
+  origin: true,
   credentials: true
 }));
-app.use(express.json());
-app.use(cookieParser());
+
+// -------------------------------
+// Static frontend (IMPORTANT)
+// -------------------------------
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ---------------- MongoDB ----------------
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.log("❌ MongoDB error:", err.message));
+// -------------------------------
+// ENV
+// -------------------------------
+const PORT = process.env.PORT || 5001;
+const MONGO_URI = process.env.MONGO_URI;
 
-// ---------------- Schemas ----------------
-const leadSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  phone: String,
-  source: String,
-  message: String,
-  status: { type: String, default: "new" },
-  notes: [],
-  createdAt: { type: Date, default: Date.now }
-});
+// -------------------------------
+// MongoDB Connection
+// -------------------------------
+mongoose.connect(MONGO_URI)
+  .then(() => {
+    console.log("✅ MongoDB connected");
+    seedAdmin();
+  })
+  .catch(err => {
+    console.error("❌ MongoDB connection error:", err.message);
+  });
 
-const Lead = mongoose.model("Lead", leadSchema);
+// -------------------------------
+// Basic Models (if already in file, keep yours)
+// -------------------------------
+const Lead = require('./models/Lead');
+const User = require('./models/User');
 
-const adminSchema = new mongoose.Schema({
-  username: String,
-  passwordHash: String
-});
+// -------------------------------
+// Auth Middleware
+// -------------------------------
+const jwt = require('jsonwebtoken');
 
-const Admin = mongoose.model("Admin", adminSchema);
-
-// ---------------- Seed Admin ----------------
-async function seedAdmin() {
-  const exists = await Admin.findOne({ username: ADMIN_USERNAME });
-
-  if (!exists) {
-    const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
-    await Admin.create({
-      username: ADMIN_USERNAME,
-      passwordHash: hash
-    });
-    console.log("✅ Admin created");
-  }
-}
-
-// ---------------- Auth Middleware ----------------
 function requireAuth(req, res, next) {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ error: "Not logged in" });
-
   try {
-    req.admin = jwt.verify(token, JWT_SECRET);
+    const token = req.cookies.token;
+    if (!token) return res.status(401).json({ error: "Not logged in" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
     return res.status(401).json({ error: "Invalid token" });
   }
 }
 
-// ===================================================
+// -------------------------------
+// Seed Admin
+// -------------------------------
+async function seedAdmin() {
+  try {
+    const exists = await User.findOne({ username: 'admin' });
+    if (!exists) {
+      await User.create({
+        username: 'admin',
+        password: 'admin123' // (you can hash later)
+      });
+      console.log("👤 Admin created");
+    }
+  } catch (err) {
+    console.error("Seed error:", err.message);
+  }
+}
+
+// ===============================
 // AUTH ROUTES
-// ===================================================
+// ===============================
 
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    const admin = await Admin.findOne({ username });
-
-    if (!admin) {
-      return res.status(401).json({ error: "Invalid username" });
-    }
-
-    const ok = await bcrypt.compare(password, admin.passwordHash);
-
-    if (!ok) {
-      return res.status(401).json({ error: "Wrong password" });
+    const user = await User.findOne({ username });
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const token = jwt.sign(
-      { id: admin._id, username: admin.username },
-      JWT_SECRET,
-      { expiresIn: "8h" }
+      { id: user._id, username: user.username },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
     );
 
     res.cookie('token', token, {
-  httpOnly: true,
-  sameSite: 'lax',
-  secure: false   
-});
+      httpOnly: true,
+      sameSite: 'lax'
+    });
 
-    res.json({ message: "Login success" });
-
+    res.json({ message: "Login successful" });
   } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ error: "Login error" });
   }
 });
 
+app.get('/api/auth/me', requireAuth, (req, res) => {
+  res.json(req.user);
+});
+
 app.post('/api/auth/logout', (req, res) => {
-  res.clearCookie("token");
+  res.clearCookie('token');
   res.json({ message: "Logged out" });
 });
 
-app.get('/api/auth/me', requireAuth, (req, res) => {
-  res.json(req.admin);
-});
-
-// ===================================================
+// ===============================
 // LEADS ROUTES
-// ===================================================
+// ===============================
 
+// Create lead
 app.post('/api/leads', async (req, res) => {
-  const lead = await Lead.create(req.body);
-  res.json(lead);
+  try {
+    const lead = await Lead.create(req.body);
+    res.json(lead);
+  } catch (err) {
+    res.status(500).json({ error: "Create lead failed" });
+  }
 });
 
+// Get leads
 app.get('/api/leads', requireAuth, async (req, res) => {
-  const leads = await Lead.find().sort({ createdAt: -1 });
-  res.json(leads);
+  try {
+    const leads = await Lead.find().sort({ createdAt: -1 });
+    res.json(leads);
+  } catch (err) {
+    res.status(500).json({ error: "Fetch failed" });
+  }
 });
 
+// Stats
+app.get('/api/leads/stats', requireAuth, async (req, res) => {
+  try {
+    const total = await Lead.countDocuments();
+
+    const statusCounts = await Lead.aggregate([
+      { $group: { _id: "$status", count: { $sum: 1 } } }
+    ]);
+
+    res.json({ total, statusCounts });
+  } catch (err) {
+    res.status(500).json({ error: "Stats failed" });
+  }
+});
+
+// Update status
+app.patch('/api/leads/:id/status', requireAuth, async (req, res) => {
+  try {
+    const lead = await Lead.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+
+    res.json(lead);
+  } catch (err) {
+    res.status(500).json({ error: "Update failed" });
+  }
+});
+
+// Add note
+app.post('/api/leads/:id/notes', requireAuth, async (req, res) => {
+  try {
+    const lead = await Lead.findById(req.params.id);
+    if (!lead) return res.status(404).json({ error: "Not found" });
+
+    lead.notes.push({ text: req.body.text });
+    await lead.save();
+
+    res.json(lead);
+  } catch (err) {
+    res.status(500).json({ error: "Note failed" });
+  }
+});
+
+// Delete lead
 app.delete('/api/leads/:id', requireAuth, async (req, res) => {
-  await Lead.findByIdAndDelete(req.params.id);
-  res.json({ message: "Deleted" });
+  try {
+    await Lead.findByIdAndDelete(req.params.id);
+    res.json({ message: "Deleted" });
+  } catch (err) {
+    res.status(500).json({ error: "Delete failed" });
+  }
 });
 
-// ===================================================
+// ===============================
 // FRONTEND ROUTES
-// ===================================================
+// ===============================
 
-app.get('/', (req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
-);
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-app.get('/login', (req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'login.html'))
-);
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
 
-app.get('/dashboard', (req, res) =>
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'))
-);
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
 
-// ===================================================
+// ===============================
+// START SERVER
+// ===============================
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  seedAdmin();
 });
