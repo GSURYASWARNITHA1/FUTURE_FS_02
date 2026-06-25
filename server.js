@@ -101,28 +101,36 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    // 1. check if body is coming correctly
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password required" });
+    }
+
+    // 2. find user in DB
     const user = await User.findOne({ username });
-    if (!user || user.password !== password) {
+
+    if (!user) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, username: user.username },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // 3. plain password check (your DB uses plain text)
+    if (password !== user.password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      sameSite: 'lax'
+    return res.json({
+      message: "Login successful",
+      user: {
+        id: user._id,
+        username: user.username
+      }
     });
 
-    res.json({ message: "Login successful" });
   } catch (err) {
-    res.status(500).json({ error: "Login error" });
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
-
 app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json(req.user);
 });
