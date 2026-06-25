@@ -1,28 +1,22 @@
 // ===============================
 // Mini CRM - server.js (CLEAN FIX)
 // ===============================
-const User = require('./models/User');
-require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+require('dotenv').config();
 
-// -------------------------------
-// App init (MUST BE FIRST)
-// -------------------------------
+const User = require('./models/User'); // ✅ correct
+
 const app = express();
 
-// -------------------------------
-// Middleware
-// -------------------------------
+// middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Allow frontend cookies + requests
 app.use(cors({
   origin: true,
   credentials: true
