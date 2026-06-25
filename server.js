@@ -49,7 +49,6 @@ mongoose.connect(MONGO_URI)
 // Basic Models (if already in file, keep yours)
 // -------------------------------
 const Lead = require('./models/Lead');
-const User = require('./models/User');
 
 // -------------------------------
 // Auth Middleware
