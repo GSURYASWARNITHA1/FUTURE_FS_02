@@ -300,7 +300,9 @@
   </div>
 </div>
 <script>
-  const API = "https://future-fs-02-tm59.onrender.com";
+  fetch(`${API}/api/leads`, {
+  credentials: 'include'
+});
 
   let allLeads = [];
   let currentLeadId = null;
