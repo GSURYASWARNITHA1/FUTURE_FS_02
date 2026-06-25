@@ -1,5 +1,5 @@
 // ===============================
-// Mini CRM - server.js (FINAL FIXED)
+// Mini CRM - server.js (UPDATED FOR RENDER)
 // ===============================
 
 require('dotenv').config();
@@ -30,7 +30,7 @@ app.use(cors({
 app.use(express.static(path.join(__dirname, 'public')));
 
 // -------------------- ENV --------------------
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 10000; // Render expects port 10000 or process.env.PORT
 const MONGO_URI = process.env.MONGO_URI;
 
 // -------------------- DB CONNECT --------------------
@@ -98,9 +98,11 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '1d' }
     );
 
+    // FIXED: Added secure flag for production environments like Render
     res.cookie('token', token, {
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production' || true 
     });
 
     res.json({
@@ -197,7 +199,7 @@ app.delete('/api/leads/:id', requireAuth, async (req, res) => {
 });
 
 // ===============================
-// FRONTEND ROUTES
+// FRONTEND ROUTES (FIXED FOR DIRECT HTML ACCESS)
 // ===============================
 
 app.get('/', (req, res) => {
@@ -210,6 +212,11 @@ app.get('/login', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
+// FALLBACK ROUTE: Redirects any other broken path back to index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ===============================
