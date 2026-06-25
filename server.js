@@ -223,13 +223,20 @@ app.get('/login', (req, res) => {
     });
   });
 });
-
-// Dashboard Route
+// Dashboard Route (FORCED TYPO BYPASS)
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'dashboard.html'), err => {
-    if (err) res.sendFile(path.join(__dirname, 'Public', 'dashboard.html'), err2 => {
-      if (err2) res.status(404).send("Not Found: dashboard.html is missing from public folder");
-    });
+    if (err) {
+      // If dashboard.html fails, try searching for the misspelled version just in case
+      res.sendFile(path.join(__dirname, 'public', 'dahsbaord.html'), err2 => {
+        if (err2) {
+          // If both fail, look for capital D
+          res.sendFile(path.join(__dirname, 'public', 'Dashboard.html'), err3 => {
+            if (err3) res.status(404).send("Not Found: No dashboard HTML file could be resolved in the folder structure.");
+          });
+        }
+      });
+    }
   });
 });
 
